@@ -27,14 +27,13 @@ public class Supplier implements GRecord{
         return loObject;
     }
 
-    public UnitSupplier openRecord(String fsClientID, String fsBranchCd) {
+    public UnitSupplier openRecord(String fsClientID) {
         UnitSupplier loObject = new UnitSupplier();
         
         Connection loConn = null;
         loConn = setConnection();   
         
-        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sClientID = " + SQLUtil.toSQL(fsClientID) +
-                                                                " AND sBranchCD = " + SQLUtil.toSQL(fsBranchCd));
+        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sClientID = " + SQLUtil.toSQL(fsClientID));
         ResultSet loRS = poGRider.executeQuery(lsSQL);
         
         try {
@@ -97,7 +96,7 @@ public class Supplier implements GRecord{
             lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt);
         }else{
             //Load previous transaction
-            loOldEnt = openRecord(fsClientID, fsBranchCd);
+            loOldEnt = openRecord(fsClientID);
             
             //Generate the Update Statement
             lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sClientID = " + SQLUtil.toSQL(loNewEnt.getValue(1)) + 
@@ -129,7 +128,7 @@ public class Supplier implements GRecord{
     }
 
     public boolean deleteRecord(String fsClientID, String fsBranchCd) {
-        UnitSupplier loObject = openRecord(fsClientID, fsBranchCd);
+        UnitSupplier loObject = openRecord(fsClientID);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -159,7 +158,7 @@ public class Supplier implements GRecord{
     }
 
     public boolean deactivateRecord(String fsClientID, String fsBranchCd) {
-        UnitSupplier loObject = openRecord(fsClientID, fsBranchCd);
+        UnitSupplier loObject = openRecord(fsClientID);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -196,7 +195,7 @@ public class Supplier implements GRecord{
     }
 
     public boolean activateRecord(String fsClientID, String fsBranchCd) {
-        UnitSupplier loObject = openRecord(fsClientID, fsBranchCd);
+        UnitSupplier loObject = openRecord(fsClientID);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -300,27 +299,22 @@ public class Supplier implements GRecord{
     private final GCrypt poCrypt = new GCrypt();
 
     @Override
-    public Object openRecord(String string) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Object saveRecord(Object foEntity, String fsTransNox) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public Object saveRecord(Object o, String string) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean deleteRecord(String fsTransNox) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public boolean deleteRecord(String string) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean deactivateRecord(String fsTransNox) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public boolean deactivateRecord(String string) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public boolean activateRecord(String string) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public boolean activateRecord(String fsTransNox) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
