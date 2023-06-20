@@ -2,7 +2,7 @@
  * @author  Michael Cuison
  * @date    2018-04-19
  */
-package org.rmj.cas.parameter.base;
+package org.rmj.lp.parameter.base;
 
 import com.mysql.jdbc.Connection;
 import java.sql.ResultSet;
@@ -14,30 +14,27 @@ import org.rmj.appdriver.SQLUtil;
 import org.rmj.appdriver.constants.RecordStatus;
 import org.rmj.appdriver.iface.GEntity;
 import org.rmj.appdriver.iface.GRecord;
-import org.rmj.cas.parameter.pojo.UnitBranch;
+import org.rmj.lp.parameter.pojo.UnitInventoryType;
 
-public class Branch implements GRecord{   
+public class InventoryType implements GRecord{   
     @Override
-    public UnitBranch newRecord() {
-        UnitBranch loObject = new UnitBranch();
+    public UnitInventoryType newRecord() {
+        UnitInventoryType loObject = new UnitInventoryType();
         
         Connection loConn = null;
         loConn = setConnection();       
-        
-        //assign the primary values
-        loObject.setBranchCode(MiscUtil.getNextCode(loObject.getTable(), "sBranchCd", false, loConn, psBranchCd));
         
         return loObject;
     }
 
     @Override
-    public UnitBranch openRecord(String fstransNox) {
-        UnitBranch loObject = new UnitBranch();
+    public UnitInventoryType openRecord(String fstransNox) {
+        UnitInventoryType loObject = new UnitInventoryType();
         
         Connection loConn = null;
         loConn = setConnection();   
         
-        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sBranchCd = " + SQLUtil.toSQL(fstransNox));
+        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sInvTypCd = " + SQLUtil.toSQL(fstransNox));
         ResultSet loRS = poGRider.executeQuery(lsSQL);
         
         try {
@@ -60,24 +57,29 @@ public class Branch implements GRecord{
     }
 
     @Override
-    public UnitBranch saveRecord(Object foEntity, String fsTransNox) {
+    public UnitInventoryType saveRecord(Object foEntity, String fsTransNox) {
         String lsSQL = "";
-        UnitBranch loOldEnt = null;
-        UnitBranch loNewEnt = null;
-        UnitBranch loResult = null;
+        UnitInventoryType loOldEnt = null;
+        UnitInventoryType loNewEnt = null;
+        UnitInventoryType loResult = null;
         
         // Check for the value of foEntity
-        if (!(foEntity instanceof UnitBranch)) {
+        if (!(foEntity instanceof UnitInventoryType)) {
             setErrMsg("Invalid Entity Passed as Parameter");
             return loResult;
         }
         
         // Typecast the Entity to this object
-        loNewEnt = (UnitBranch) foEntity;
+        loNewEnt = (UnitInventoryType) foEntity;
         
         
         // Test if entry is ok
-        if (loNewEnt.getBranchName()== null || loNewEnt.getBranchName().isEmpty()){
+        if (loNewEnt.getInvTypeCode().equals("")){
+            setMessage("Invalid inventory type code detected.");
+            return loResult;
+        }
+        
+        if (loNewEnt.getDescription() == null || loNewEnt.getDescription().equals("")){
             setMessage("Invalid description detected.");
             return loResult;
         }
@@ -91,8 +93,6 @@ public class Branch implements GRecord{
             Connection loConn = null;
             loConn = setConnection();   
             
-            loNewEnt.setBranchCode(MiscUtil.getNextCode(loNewEnt.getTable(), "sBranchCd", false, loConn, psBranchCd));
-            
             if (!pbWithParent) MiscUtil.close(loConn);
             
             //Generate the SQL Statement
@@ -102,12 +102,12 @@ public class Branch implements GRecord{
             loOldEnt = openRecord(fsTransNox);
             
             //Generate the Update Statement
-            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sBranchCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
+            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sInvTypCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
         }
         
         //No changes have been made
         if (lsSQL.equals("")){
-            setMessage("Record is not updated");
+            setMessage("No changes made. Record not updated.");
             return loResult;
         }
         
@@ -131,7 +131,7 @@ public class Branch implements GRecord{
 
     @Override
     public boolean deleteRecord(String fsTransNox) {
-        UnitBranch loObject = openRecord(fsTransNox);
+        UnitInventoryType loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -140,7 +140,7 @@ public class Branch implements GRecord{
         }
         
         String lsSQL = "DELETE FROM " + loObject.getTable() + 
-                        " WHERE sBranchCd = " + SQLUtil.toSQL(fsTransNox);
+                        " WHERE sInvTypCd = " + SQLUtil.toSQL(fsTransNox);
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -161,7 +161,7 @@ public class Branch implements GRecord{
 
     @Override
     public boolean deactivateRecord(String fsTransNox) {
-        UnitBranch loObject = openRecord(fsTransNox);
+        UnitInventoryType loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -178,7 +178,7 @@ public class Branch implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.INACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sBranchCd = " + SQLUtil.toSQL(loObject.getBranchCode());
+                        " WHERE sInvTypCd = " + SQLUtil.toSQL(loObject.getInvTypeCode());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -198,7 +198,7 @@ public class Branch implements GRecord{
 
     @Override
     public boolean activateRecord(String fsTransNox) {
-        UnitBranch loObject = openRecord(fsTransNox);
+        UnitInventoryType loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -215,7 +215,7 @@ public class Branch implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.ACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sBranchCd = " + SQLUtil.toSQL(loObject.getBranchCode());
+                        " WHERE sInvTypCd = " + SQLUtil.toSQL(loObject.getInvTypeCode());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -265,7 +265,7 @@ public class Branch implements GRecord{
 
     @Override
     public String getSQ_Master() {
-        return (MiscUtil.makeSelect(new UnitBranch()));
+        return (MiscUtil.makeSelect(new UnitInventoryType()));
     }
     
     //Added methods

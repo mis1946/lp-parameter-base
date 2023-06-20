@@ -2,7 +2,7 @@
  * @author  Michael Cuison
  * @date    2018-04-19
  */
-package org.rmj.cas.parameter.base;
+package org.rmj.lp.parameter.base;
 
 import com.mysql.jdbc.Connection;
 import java.sql.ResultSet;
@@ -14,30 +14,30 @@ import org.rmj.appdriver.SQLUtil;
 import org.rmj.appdriver.constants.RecordStatus;
 import org.rmj.appdriver.iface.GEntity;
 import org.rmj.appdriver.iface.GRecord;
-import org.rmj.cas.parameter.pojo.UnitInvLocation;
+import org.rmj.lp.parameter.pojo.UnitInventory;
 
-public class InventoryLocation implements GRecord{   
+public class Inventory implements GRecord{   
     @Override
-    public UnitInvLocation newRecord() {
-        UnitInvLocation loObject = new UnitInvLocation();
+    public UnitInventory newRecord() {
+        UnitInventory loObject = new UnitInventory();
         
         Connection loConn = null;
         loConn = setConnection();       
         
         //assign the primary values
-        loObject.setLocationCode(MiscUtil.getNextCode(loObject.getTable(), "sLocatnCd", false, loConn, psBranchCd));
+        loObject.setStockID(MiscUtil.getNextCode(loObject.getTable(), "sStockIDx", true, loConn, psBranchCd));
         
         return loObject;
     }
 
     @Override
-    public UnitInvLocation openRecord(String fstransNox) {
-        UnitInvLocation loObject = new UnitInvLocation();
+    public UnitInventory openRecord(String fstransNox) {
+        UnitInventory loObject = new UnitInventory();
         
         Connection loConn = null;
         loConn = setConnection();   
         
-        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sLocatnCd = " + SQLUtil.toSQL(fstransNox));
+        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sStockIDx = " + SQLUtil.toSQL(fstransNox));
         ResultSet loRS = poGRider.executeQuery(lsSQL);
         
         try {
@@ -60,30 +60,62 @@ public class InventoryLocation implements GRecord{
     }
 
     @Override
-    public UnitInvLocation saveRecord(Object foEntity, String fsTransNox) {
+    public UnitInventory saveRecord(Object foEntity, String fsTransNox) {
         String lsSQL = "";
-        UnitInvLocation loOldEnt = null;
-        UnitInvLocation loNewEnt = null;
-        UnitInvLocation loResult = null;
+        UnitInventory loOldEnt = null;
+        UnitInventory loNewEnt = null;
+        UnitInventory loResult = null;
         
         // Check for the value of foEntity
-        if (!(foEntity instanceof UnitInvLocation)) {
+        if (!(foEntity instanceof UnitInventory)) {
             setErrMsg("Invalid Entity Passed as Parameter");
             return loResult;
         }
         
         // Typecast the Entity to this object
-        loNewEnt = (UnitInvLocation) foEntity;
+        loNewEnt = (UnitInventory) foEntity;
         
         
-        if (loNewEnt.getBriefDescript().equals("")){
+        // Test if entry is ok
+        if (loNewEnt.getBarcode() == null || loNewEnt.getBarcode().isEmpty()){
+            setMessage("Invalid barcode detected.");
+            return loResult;
+        }
+        
+        if (loNewEnt.getDescription()== null || loNewEnt.getDescription().isEmpty()){
+            setMessage("Invalid description detected.");
+            return loResult;
+        }
+        
+        if (loNewEnt.getBriefDesc()== null || loNewEnt.getBriefDesc().isEmpty()){
             setMessage("Invalid brief description detected.");
             return loResult;
         }
-
-        // Test if entry is ok
-        if (loNewEnt.getLocationName().equals("")){
-            setMessage("Invalid description detected.");
+        
+        if (loNewEnt.getCategory1()== null || loNewEnt.getCategory1().isEmpty()){
+            setMessage("Invalid category detected.");
+            return loResult;
+        }
+        
+        if (loNewEnt.getBrandCode()== null || loNewEnt.getBrandCode().isEmpty()){
+            setMessage("Invalid brand detected.");
+            return loResult;
+        }
+       
+        /*uncomment this if needed*/
+        /*if (loNewEnt.getModelID()== null || loNewEnt.getModelID().isEmpty()){
+            setMessage("Invalid model detected.");
+            return loResult;
+        }*/
+        
+        /*uncomment this if needed*/
+        /*if (loNewEnt.getColorCode()== null || loNewEnt.getColorCode().isEmpty()){
+            setMessage("Invalid color detected.");
+            return loResult;
+        }*/
+        
+        if (loNewEnt.getInvTypeCode()== null || loNewEnt.getInvTypeCode().isEmpty()){
+            setMessage("Invalid inventory type detected.");
             return loResult;
         }
         
@@ -96,7 +128,7 @@ public class InventoryLocation implements GRecord{
             Connection loConn = null;
             loConn = setConnection();   
             
-            loNewEnt.setLocationCode(MiscUtil.getNextCode(loNewEnt.getTable(), "sLocatnCd", false, loConn, psBranchCd));
+            loNewEnt.setStockID(MiscUtil.getNextCode(loNewEnt.getTable(), "sStockIDx", true, loConn, psBranchCd));
             
             if (!pbWithParent) MiscUtil.close(loConn);
             
@@ -107,7 +139,7 @@ public class InventoryLocation implements GRecord{
             loOldEnt = openRecord(fsTransNox);
             
             //Generate the Update Statement
-            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sLocatnCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
+            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sStockIDx = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
         }
         
         //No changes have been made
@@ -136,7 +168,7 @@ public class InventoryLocation implements GRecord{
 
     @Override
     public boolean deleteRecord(String fsTransNox) {
-        UnitInvLocation loObject = openRecord(fsTransNox);
+        UnitInventory loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -145,7 +177,7 @@ public class InventoryLocation implements GRecord{
         }
         
         String lsSQL = "DELETE FROM " + loObject.getTable() + 
-                        " WHERE sLocatnCd = " + SQLUtil.toSQL(fsTransNox);
+                        " WHERE sStockIDx = " + SQLUtil.toSQL(fsTransNox);
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -166,7 +198,7 @@ public class InventoryLocation implements GRecord{
 
     @Override
     public boolean deactivateRecord(String fsTransNox) {
-        UnitInvLocation loObject = openRecord(fsTransNox);
+        UnitInventory loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -183,7 +215,7 @@ public class InventoryLocation implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.INACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sLocatnCd = " + SQLUtil.toSQL(loObject.getLocationCode());
+                        " WHERE sStockIDx = " + SQLUtil.toSQL(loObject.getStockID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -203,7 +235,7 @@ public class InventoryLocation implements GRecord{
 
     @Override
     public boolean activateRecord(String fsTransNox) {
-        UnitInvLocation loObject = openRecord(fsTransNox);
+        UnitInventory loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -220,7 +252,7 @@ public class InventoryLocation implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.ACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sLocatnCd = " + SQLUtil.toSQL(loObject.getLocationCode());
+                        " WHERE sStockIDx = " + SQLUtil.toSQL(loObject.getStockID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -270,7 +302,7 @@ public class InventoryLocation implements GRecord{
 
     @Override
     public String getSQ_Master() {
-        return (MiscUtil.makeSelect(new UnitInvLocation()));
+        return (MiscUtil.makeSelect(new UnitInventory()));
     }
     
     //Added methods

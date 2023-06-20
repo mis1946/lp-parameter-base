@@ -6,5 +6,6 @@
         <group name="General Purchasing"/>
         <group name="RMJ POS"/>
         <group name="POS"/>
+        <group name="LP IntegSys"/>
     </open-files>
 </project-private>

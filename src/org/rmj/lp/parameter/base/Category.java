@@ -2,7 +2,7 @@
  * @author  Michael Cuison
  * @date    2018-04-19
  */
-package org.rmj.cas.parameter.base;
+package org.rmj.lp.parameter.base;
 
 import com.mysql.jdbc.Connection;
 import java.sql.ResultSet;
@@ -14,31 +14,30 @@ import org.rmj.appdriver.SQLUtil;
 import org.rmj.appdriver.constants.RecordStatus;
 import org.rmj.appdriver.iface.GEntity;
 import org.rmj.appdriver.iface.GRecord;
-import org.rmj.cas.parameter.pojo.UnitCompany;
+import org.rmj.lp.parameter.pojo.UnitCategory;
 
-public class Company implements GRecord{   
+public class Category implements GRecord{   
     @Override
-    public UnitCompany newRecord() {
-        UnitCompany loObject = new UnitCompany();
+    public UnitCategory newRecord() {
+        UnitCategory loObject = new UnitCategory();
         
         Connection loConn = null;
         loConn = setConnection();       
         
         //assign the primary values
-        System.out.println(MiscUtil.getNextCode(loObject.getTable(), "sCompnyID", false, loConn, "M"));
-        loObject.setCompanyID(MiscUtil.getNextCode(loObject.getTable(), "sCompnyID", false, loConn, "M"));
+        loObject.setCategoryID(MiscUtil.getNextCode(loObject.getTable(), "sCategrCd", false, loConn, ""));
         
         return loObject;
     }
 
     @Override
-    public UnitCompany openRecord(String fstransNox) {
-        UnitCompany loObject = new UnitCompany();
+    public UnitCategory openRecord(String fstransNox) {
+        UnitCategory loObject = new UnitCategory();
         
         Connection loConn = null;
         loConn = setConnection();   
         
-        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sCompnyID = " + SQLUtil.toSQL(fstransNox));
+        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sCategrCd = " + SQLUtil.toSQL(fstransNox));
         ResultSet loRS = poGRider.executeQuery(lsSQL);
         
         try {
@@ -61,30 +60,30 @@ public class Company implements GRecord{
     }
 
     @Override
-    public UnitCompany saveRecord(Object foEntity, String fsTransNox) {
+    public UnitCategory saveRecord(Object foEntity, String fsTransNox) {
         String lsSQL = "";
-        UnitCompany loOldEnt = null;
-        UnitCompany loNewEnt = null;
-        UnitCompany loResult = null;
+        UnitCategory loOldEnt = null;
+        UnitCategory loNewEnt = null;
+        UnitCategory loResult = null;
         
         // Check for the value of foEntity
-        if (!(foEntity instanceof UnitCompany)) {
+        if (!(foEntity instanceof UnitCategory)) {
             setErrMsg("Invalid Entity Passed as Parameter");
             return loResult;
         }
         
         // Typecast the Entity to this object
-        loNewEnt = (UnitCompany) foEntity;
+        loNewEnt = (UnitCategory) foEntity;
         
         
         // Test if entry is ok
-        if (loNewEnt.getCompanyName() == null || loNewEnt.getCompanyName().isEmpty()){
+        if (loNewEnt.getCategoryName()== null || loNewEnt.getCategoryName().isEmpty()){
             setMessage("Invalid description detected.");
             return loResult;
         }
         
-        if (loNewEnt.getCompanyCode() == null || loNewEnt.getCompanyCode().isEmpty()){
-            setMessage("Invalid company code detected.");
+        if (loNewEnt.getInvTypeCode()== null || loNewEnt.getInvTypeCode().isEmpty()){
+            setMessage("Invalid inventory type detected.");
             return loResult;
         }
         
@@ -97,7 +96,7 @@ public class Company implements GRecord{
             Connection loConn = null;
             loConn = setConnection();   
             
-            loNewEnt.setCompanyID(MiscUtil.getNextCode(loNewEnt.getTable(), "sCompnyID", false, loConn, ""));
+            loNewEnt.setCategoryID(MiscUtil.getNextCode(loNewEnt.getTable(), "sCategrCd", false, loConn, ""));
             
             if (!pbWithParent) MiscUtil.close(loConn);
             
@@ -108,12 +107,12 @@ public class Company implements GRecord{
             loOldEnt = openRecord(fsTransNox);
             
             //Generate the Update Statement
-            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sCompnyID = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
+            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sCategrCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
         }
         
         //No changes have been made
         if (lsSQL.equals("")){
-            setMessage("No changes made. Record not updated.");
+            setMessage("Record is not updated");
             return loResult;
         }
         
@@ -137,7 +136,7 @@ public class Company implements GRecord{
 
     @Override
     public boolean deleteRecord(String fsTransNox) {
-        UnitCompany loObject = openRecord(fsTransNox);
+        UnitCategory loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -146,7 +145,7 @@ public class Company implements GRecord{
         }
         
         String lsSQL = "DELETE FROM " + loObject.getTable() + 
-                        " WHERE sCompnyID = " + SQLUtil.toSQL(fsTransNox);
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(fsTransNox);
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -167,7 +166,7 @@ public class Company implements GRecord{
 
     @Override
     public boolean deactivateRecord(String fsTransNox) {
-        UnitCompany loObject = openRecord(fsTransNox);
+        UnitCategory loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -184,7 +183,7 @@ public class Company implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.INACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sCompnyID = " + SQLUtil.toSQL(loObject.getCompanyID());
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -204,7 +203,7 @@ public class Company implements GRecord{
 
     @Override
     public boolean activateRecord(String fsTransNox) {
-        UnitCompany loObject = openRecord(fsTransNox);
+        UnitCategory loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -221,7 +220,7 @@ public class Company implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.ACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sCompnyID = " + SQLUtil.toSQL(loObject.getCompanyID());
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -271,7 +270,7 @@ public class Company implements GRecord{
 
     @Override
     public String getSQ_Master() {
-        return (MiscUtil.makeSelect(new UnitCompany()));
+        return (MiscUtil.makeSelect(new UnitCategory()));
     }
     
     //Added methods

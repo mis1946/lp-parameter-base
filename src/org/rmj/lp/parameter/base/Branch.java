@@ -2,7 +2,7 @@
  * @author  Michael Cuison
  * @date    2018-04-19
  */
-package org.rmj.cas.parameter.base;
+package org.rmj.lp.parameter.base;
 
 import com.mysql.jdbc.Connection;
 import java.sql.ResultSet;
@@ -14,30 +14,30 @@ import org.rmj.appdriver.SQLUtil;
 import org.rmj.appdriver.constants.RecordStatus;
 import org.rmj.appdriver.iface.GEntity;
 import org.rmj.appdriver.iface.GRecord;
-import org.rmj.cas.parameter.pojo.UnitCategoryLevel3;
+import org.rmj.lp.parameter.pojo.UnitBranch;
 
-public class CategoryLevel3 implements GRecord{   
+public class Branch implements GRecord{   
     @Override
-    public UnitCategoryLevel3 newRecord() {
-        UnitCategoryLevel3 loObject = new UnitCategoryLevel3();
+    public UnitBranch newRecord() {
+        UnitBranch loObject = new UnitBranch();
         
         Connection loConn = null;
         loConn = setConnection();       
         
         //assign the primary values
-        loObject.setCategoryID(MiscUtil.getNextCode(loObject.getTable(), "sCategrCd", false, loConn, ""));
+        loObject.setBranchCode(MiscUtil.getNextCode(loObject.getTable(), "sBranchCd", false, loConn, psBranchCd));
         
         return loObject;
     }
 
     @Override
-    public UnitCategoryLevel3 openRecord(String fstransNox) {
-        UnitCategoryLevel3 loObject = new UnitCategoryLevel3();
+    public UnitBranch openRecord(String fstransNox) {
+        UnitBranch loObject = new UnitBranch();
         
         Connection loConn = null;
         loConn = setConnection();   
         
-        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sCategrCd = " + SQLUtil.toSQL(fstransNox));
+        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sBranchCd = " + SQLUtil.toSQL(fstransNox));
         ResultSet loRS = poGRider.executeQuery(lsSQL);
         
         try {
@@ -60,30 +60,25 @@ public class CategoryLevel3 implements GRecord{
     }
 
     @Override
-    public UnitCategoryLevel3 saveRecord(Object foEntity, String fsTransNox) {
+    public UnitBranch saveRecord(Object foEntity, String fsTransNox) {
         String lsSQL = "";
-        UnitCategoryLevel3 loOldEnt = null;
-        UnitCategoryLevel3 loNewEnt = null;
-        UnitCategoryLevel3 loResult = null;
+        UnitBranch loOldEnt = null;
+        UnitBranch loNewEnt = null;
+        UnitBranch loResult = null;
         
         // Check for the value of foEntity
-        if (!(foEntity instanceof UnitCategoryLevel3)) {
+        if (!(foEntity instanceof UnitBranch)) {
             setErrMsg("Invalid Entity Passed as Parameter");
             return loResult;
         }
         
         // Typecast the Entity to this object
-        loNewEnt = (UnitCategoryLevel3) foEntity;
+        loNewEnt = (UnitBranch) foEntity;
         
         
         // Test if entry is ok
-        if (loNewEnt.getCategoryName()== null || loNewEnt.getCategoryName().isEmpty()){
+        if (loNewEnt.getBranchName()== null || loNewEnt.getBranchName().isEmpty()){
             setMessage("Invalid description detected.");
-            return loResult;
-        }
-        
-        if (loNewEnt.getMainCategory()== null || loNewEnt.getMainCategory().isEmpty()){
-            setMessage("Invalid main category detected.");
             return loResult;
         }
         
@@ -96,7 +91,7 @@ public class CategoryLevel3 implements GRecord{
             Connection loConn = null;
             loConn = setConnection();   
             
-            loNewEnt.setCategoryID(MiscUtil.getNextCode(loNewEnt.getTable(), "sCategrCd", false, loConn, ""));
+            loNewEnt.setBranchCode(MiscUtil.getNextCode(loNewEnt.getTable(), "sBranchCd", false, loConn, psBranchCd));
             
             if (!pbWithParent) MiscUtil.close(loConn);
             
@@ -107,12 +102,12 @@ public class CategoryLevel3 implements GRecord{
             loOldEnt = openRecord(fsTransNox);
             
             //Generate the Update Statement
-            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sCategrCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
+            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sBranchCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
         }
         
         //No changes have been made
         if (lsSQL.equals("")){
-            setMessage("Record is not updatred");
+            setMessage("Record is not updated");
             return loResult;
         }
         
@@ -136,7 +131,7 @@ public class CategoryLevel3 implements GRecord{
 
     @Override
     public boolean deleteRecord(String fsTransNox) {
-        UnitCategoryLevel3 loObject = openRecord(fsTransNox);
+        UnitBranch loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -145,7 +140,7 @@ public class CategoryLevel3 implements GRecord{
         }
         
         String lsSQL = "DELETE FROM " + loObject.getTable() + 
-                        " WHERE sCategrCd = " + SQLUtil.toSQL(fsTransNox);
+                        " WHERE sBranchCd = " + SQLUtil.toSQL(fsTransNox);
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -166,7 +161,7 @@ public class CategoryLevel3 implements GRecord{
 
     @Override
     public boolean deactivateRecord(String fsTransNox) {
-        UnitCategoryLevel3 loObject = openRecord(fsTransNox);
+        UnitBranch loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -183,7 +178,7 @@ public class CategoryLevel3 implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.INACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
+                        " WHERE sBranchCd = " + SQLUtil.toSQL(loObject.getBranchCode());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -203,7 +198,7 @@ public class CategoryLevel3 implements GRecord{
 
     @Override
     public boolean activateRecord(String fsTransNox) {
-        UnitCategoryLevel3 loObject = openRecord(fsTransNox);
+        UnitBranch loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -220,7 +215,7 @@ public class CategoryLevel3 implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.ACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
+                        " WHERE sBranchCd = " + SQLUtil.toSQL(loObject.getBranchCode());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -270,7 +265,7 @@ public class CategoryLevel3 implements GRecord{
 
     @Override
     public String getSQ_Master() {
-        return (MiscUtil.makeSelect(new UnitCategoryLevel3()));
+        return (MiscUtil.makeSelect(new UnitBranch()));
     }
     
     //Added methods

@@ -2,7 +2,7 @@
  * @author  Michael Cuison
  * @date    2018-04-19
  */
-package org.rmj.cas.parameter.base;
+package org.rmj.lp.parameter.base;
 
 import com.mysql.jdbc.Connection;
 import java.sql.ResultSet;
@@ -14,30 +14,30 @@ import org.rmj.appdriver.SQLUtil;
 import org.rmj.appdriver.constants.RecordStatus;
 import org.rmj.appdriver.iface.GEntity;
 import org.rmj.appdriver.iface.GRecord;
-import org.rmj.cas.parameter.pojo.UnitMeasure;
+import org.rmj.lp.parameter.pojo.UnitCategoryLevel2;
 
-public class Measure implements GRecord{   
+public class CategoryLevel2 implements GRecord{   
     @Override
-    public UnitMeasure newRecord() {
-        UnitMeasure loObject = new UnitMeasure();
+    public UnitCategoryLevel2 newRecord() {
+        UnitCategoryLevel2 loObject = new UnitCategoryLevel2();
         
         Connection loConn = null;
         loConn = setConnection();       
         
         //assign the primary values
-        loObject.setBrandCode(MiscUtil.getNextCode(loObject.getTable(), "sMeasurID", false, loConn, psBranchCd));
+        loObject.setCategoryID(MiscUtil.getNextCode(loObject.getTable(), "sCategrCd", false, loConn, ""));
         
         return loObject;
     }
 
     @Override
-    public UnitMeasure openRecord(String fstransNox) {
-        UnitMeasure loObject = new UnitMeasure();
+    public UnitCategoryLevel2 openRecord(String fstransNox) {
+        UnitCategoryLevel2 loObject = new UnitCategoryLevel2();
         
         Connection loConn = null;
         loConn = setConnection();   
         
-        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sMeasurID = " + SQLUtil.toSQL(fstransNox));
+        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sCategrCd = " + SQLUtil.toSQL(fstransNox));
         ResultSet loRS = poGRider.executeQuery(lsSQL);
         
         try {
@@ -60,25 +60,35 @@ public class Measure implements GRecord{
     }
 
     @Override
-    public UnitMeasure saveRecord(Object foEntity, String fsTransNox) {
+    public UnitCategoryLevel2 saveRecord(Object foEntity, String fsTransNox) {
         String lsSQL = "";
-        UnitMeasure loOldEnt = null;
-        UnitMeasure loNewEnt = null;
-        UnitMeasure loResult = null;
+        UnitCategoryLevel2 loOldEnt = null;
+        UnitCategoryLevel2 loNewEnt = null;
+        UnitCategoryLevel2 loResult = null;
         
         // Check for the value of foEntity
-        if (!(foEntity instanceof UnitMeasure)) {
+        if (!(foEntity instanceof UnitCategoryLevel2)) {
             setErrMsg("Invalid Entity Passed as Parameter");
             return loResult;
         }
         
         // Typecast the Entity to this object
-        loNewEnt = (UnitMeasure) foEntity;
+        loNewEnt = (UnitCategoryLevel2) foEntity;
         
         
         // Test if entry is ok
-        if (loNewEnt.getMeasureName()== null || loNewEnt.getMeasureName().isEmpty()){
+        if (loNewEnt.getCategoryName()== null || loNewEnt.getCategoryName().isEmpty()){
             setMessage("Invalid description detected.");
+            return loResult;
+        }
+        
+        if (loNewEnt.getInvTypeCode()== null || loNewEnt.getInvTypeCode().isEmpty()){
+            setMessage("Invalid inventory type detected.");
+            return loResult;
+        }
+        
+        if (loNewEnt.getMainCategory()== null || loNewEnt.getMainCategory().isEmpty()){
+            setMessage("Invalid main category detected.");
             return loResult;
         }
         
@@ -91,7 +101,7 @@ public class Measure implements GRecord{
             Connection loConn = null;
             loConn = setConnection();   
             
-            loNewEnt.setBrandCode(MiscUtil.getNextCode(loNewEnt.getTable(), "sMeasurID", false, loConn, psBranchCd));
+            loNewEnt.setCategoryID(MiscUtil.getNextCode(loNewEnt.getTable(), "sCategrCd", false, loConn, ""));
             
             if (!pbWithParent) MiscUtil.close(loConn);
             
@@ -102,7 +112,7 @@ public class Measure implements GRecord{
             loOldEnt = openRecord(fsTransNox);
             
             //Generate the Update Statement
-            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sMeasurID = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
+            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sCategrCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
         }
         
         //No changes have been made
@@ -131,7 +141,7 @@ public class Measure implements GRecord{
 
     @Override
     public boolean deleteRecord(String fsTransNox) {
-        UnitMeasure loObject = openRecord(fsTransNox);
+        UnitCategoryLevel2 loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -140,7 +150,7 @@ public class Measure implements GRecord{
         }
         
         String lsSQL = "DELETE FROM " + loObject.getTable() + 
-                        " WHERE sMeasurID = " + SQLUtil.toSQL(fsTransNox);
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(fsTransNox);
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -161,7 +171,7 @@ public class Measure implements GRecord{
 
     @Override
     public boolean deactivateRecord(String fsTransNox) {
-        UnitMeasure loObject = openRecord(fsTransNox);
+        UnitCategoryLevel2 loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -178,7 +188,7 @@ public class Measure implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.INACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sMeasurID = " + SQLUtil.toSQL(loObject.getMeasureID());
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -198,7 +208,7 @@ public class Measure implements GRecord{
 
     @Override
     public boolean activateRecord(String fsTransNox) {
-        UnitMeasure loObject = openRecord(fsTransNox);
+        UnitCategoryLevel2 loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -215,7 +225,7 @@ public class Measure implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.ACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sMeasurID = " + SQLUtil.toSQL(loObject.getMeasureID());
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -265,7 +275,7 @@ public class Measure implements GRecord{
 
     @Override
     public String getSQ_Master() {
-        return (MiscUtil.makeSelect(new UnitMeasure()));
+        return (MiscUtil.makeSelect(new UnitCategoryLevel2()));
     }
     
     //Added methods

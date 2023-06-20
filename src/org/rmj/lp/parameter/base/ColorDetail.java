@@ -2,7 +2,7 @@
  * @author  Michael Cuison
  * @date    2018-04-19
  */
-package org.rmj.cas.parameter.base;
+package org.rmj.lp.parameter.base;
 
 import com.mysql.jdbc.Connection;
 import java.sql.ResultSet;
@@ -14,27 +14,30 @@ import org.rmj.appdriver.SQLUtil;
 import org.rmj.appdriver.constants.RecordStatus;
 import org.rmj.appdriver.iface.GEntity;
 import org.rmj.appdriver.iface.GRecord;
-import org.rmj.cas.parameter.pojo.UnitAffiliatedCompany;
+import org.rmj.lp.parameter.pojo.UnitColorDetail;
 
-public class AffiliatedCompany implements GRecord{   
+public class ColorDetail implements GRecord{   
     @Override
-    public UnitAffiliatedCompany newRecord() {
-        UnitAffiliatedCompany loObject = new UnitAffiliatedCompany();
+    public UnitColorDetail newRecord() {
+        UnitColorDetail loObject = new UnitColorDetail();
         
         Connection loConn = null;
         loConn = setConnection();       
+        
+        //assign the primary values
+        loObject.setColorID(MiscUtil.getNextCode(loObject.getTable(), "sColorIDx", false, loConn, psBranchCd));
         
         return loObject;
     }
 
     @Override
-    public UnitAffiliatedCompany openRecord(String fstransNox) {
-        UnitAffiliatedCompany loObject = new UnitAffiliatedCompany();
+    public UnitColorDetail openRecord(String fstransNox) {
+        UnitColorDetail loObject = new UnitColorDetail();
         
         Connection loConn = null;
         loConn = setConnection();   
         
-        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sCompnyCd = " + SQLUtil.toSQL(fstransNox));
+        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sColorIDx = " + SQLUtil.toSQL(fstransNox));
         ResultSet loRS = poGRider.executeQuery(lsSQL);
         
         try {
@@ -57,51 +60,39 @@ public class AffiliatedCompany implements GRecord{
     }
 
     @Override
-    public UnitAffiliatedCompany saveRecord(Object foEntity, String fsTransNox) {
+    public UnitColorDetail saveRecord(Object foEntity, String fsTransNox) {
         String lsSQL = "";
-        UnitAffiliatedCompany loOldEnt = null;
-        UnitAffiliatedCompany loNewEnt = null;
-        UnitAffiliatedCompany loResult = null;
+        UnitColorDetail loOldEnt = null;
+        UnitColorDetail loNewEnt = null;
+        UnitColorDetail loResult = null;
         
         // Check for the value of foEntity
-        if (!(foEntity instanceof UnitAffiliatedCompany)) {
+        if (!(foEntity instanceof UnitColorDetail)) {
             setErrMsg("Invalid Entity Passed as Parameter");
             return loResult;
         }
         
         // Typecast the Entity to this object
-        loNewEnt = (UnitAffiliatedCompany) foEntity;
+        loNewEnt = (UnitColorDetail) foEntity;
         
         
         // Test if entry is ok
-        if (loNewEnt.getCompanyCode()== null || 
-            loNewEnt.getCompanyCode().isEmpty() ||
-            loNewEnt.getCompanyCode().length() > 8){
-            
-            setMessage("Invalid code detected.");
-            return loResult;
-        }
-        
-        if (loNewEnt.getCompanyName()== null || 
-            loNewEnt.getCompanyName().isEmpty() ||
-            loNewEnt.getCompanyName().length() > 64){
-            
+        if (loNewEnt.getColorName().equals("")){
             setMessage("Invalid description detected.");
             return loResult;
         }
         
-        if (loNewEnt.getDateAffiliated() == null){
-            setMessage("Invalid date affiliated detected.");
-            return loResult;
-        }
         
         loNewEnt.setModifiedBy(poCrypt.encrypt(psUserIDxx));
         loNewEnt.setDateModified(poGRider.getServerDate());
+        
         
         // Generate the SQL Statement
         if (fsTransNox.equals("")){
             Connection loConn = null;
             loConn = setConnection();   
+            
+            loNewEnt.setColorID(MiscUtil.getNextCode(loNewEnt.getTable(), "sColorIDx", false, loConn, psBranchCd));
             
             if (!pbWithParent) MiscUtil.close(loConn);
             
@@ -112,7 +103,7 @@ public class AffiliatedCompany implements GRecord{
             loOldEnt = openRecord(fsTransNox);
             
             //Generate the Update Statement
-            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sCompnyCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
+            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sColorIDx = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
         }
         
         //No changes have been made
@@ -141,7 +132,7 @@ public class AffiliatedCompany implements GRecord{
 
     @Override
     public boolean deleteRecord(String fsTransNox) {
-        UnitAffiliatedCompany loObject = openRecord(fsTransNox);
+        UnitColorDetail loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -150,7 +141,7 @@ public class AffiliatedCompany implements GRecord{
         }
         
         String lsSQL = "DELETE FROM " + loObject.getTable() + 
-                        " WHERE sCompnyCd = " + SQLUtil.toSQL(fsTransNox);
+                        " WHERE sColorIDx = " + SQLUtil.toSQL(fsTransNox);
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -171,7 +162,7 @@ public class AffiliatedCompany implements GRecord{
 
     @Override
     public boolean deactivateRecord(String fsTransNox) {
-        UnitAffiliatedCompany loObject = openRecord(fsTransNox);
+        UnitColorDetail loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -188,7 +179,7 @@ public class AffiliatedCompany implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.INACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sCompnyCd = " + SQLUtil.toSQL(loObject.getCompanyCode());
+                        " WHERE sColorIDx = " + SQLUtil.toSQL(loObject.getColorCode());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -208,7 +199,7 @@ public class AffiliatedCompany implements GRecord{
 
     @Override
     public boolean activateRecord(String fsTransNox) {
-        UnitAffiliatedCompany loObject = openRecord(fsTransNox);
+        UnitColorDetail loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -225,7 +216,7 @@ public class AffiliatedCompany implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.ACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sCompnyCd = " + SQLUtil.toSQL(loObject.getCompanyCode());
+                        " WHERE sColorIDx = " + SQLUtil.toSQL(loObject.getColorCode());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -275,7 +266,7 @@ public class AffiliatedCompany implements GRecord{
 
     @Override
     public String getSQ_Master() {
-        return (MiscUtil.makeSelect(new UnitAffiliatedCompany()));
+        return (MiscUtil.makeSelect(new UnitColorDetail()));
     }
     
     //Added methods
