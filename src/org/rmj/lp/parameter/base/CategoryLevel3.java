@@ -2,7 +2,7 @@
  * @author  Michael Cuison
  * @date    2018-04-19
  */
-package org.rmj.cas.parameter.base;
+package org.rmj.lp.parameter.base;
 
 import com.mysql.jdbc.Connection;
 import java.sql.ResultSet;
@@ -14,30 +14,30 @@ import org.rmj.appdriver.SQLUtil;
 import org.rmj.appdriver.constants.RecordStatus;
 import org.rmj.appdriver.iface.GEntity;
 import org.rmj.appdriver.iface.GRecord;
-import org.rmj.cas.parameter.pojo.UnitCard;
+import org.rmj.lp.parameter.pojo.UnitCategoryLevel3;
 
-public class Card implements GRecord{   
+public class CategoryLevel3 implements GRecord{   
     @Override
-    public UnitCard newRecord() {
-        UnitCard loObject = new UnitCard();
+    public UnitCategoryLevel3 newRecord() {
+        UnitCategoryLevel3 loObject = new UnitCategoryLevel3();
         
         Connection loConn = null;
         loConn = setConnection();       
         
         //assign the primary values
-        loObject.setCardCode(MiscUtil.getNextCode(loObject.getTable(), "sCardIDxx", false, loConn, psBranchCd));
+        loObject.setCategoryID(MiscUtil.getNextCode(loObject.getTable(), "sCategrCd", false, loConn, ""));
         
         return loObject;
     }
 
     @Override
-    public UnitCard openRecord(String fstransNox) {
-        UnitCard loObject = new UnitCard();
+    public UnitCategoryLevel3 openRecord(String fstransNox) {
+        UnitCategoryLevel3 loObject = new UnitCategoryLevel3();
         
         Connection loConn = null;
         loConn = setConnection();   
         
-        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sCardIDxx = " + SQLUtil.toSQL(fstransNox));
+        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sCategrCd = " + SQLUtil.toSQL(fstransNox));
         ResultSet loRS = poGRider.executeQuery(lsSQL);
         
         try {
@@ -60,28 +60,32 @@ public class Card implements GRecord{
     }
 
     @Override
-    public UnitCard saveRecord(Object foEntity, String fsTransNox) {
+    public UnitCategoryLevel3 saveRecord(Object foEntity, String fsTransNox) {
         String lsSQL = "";
-        UnitCard loOldEnt = null;
-        UnitCard loNewEnt = null;
-        UnitCard loResult = null;
+        UnitCategoryLevel3 loOldEnt = null;
+        UnitCategoryLevel3 loNewEnt = null;
+        UnitCategoryLevel3 loResult = null;
         
         // Check for the value of foEntity
-        if (!(foEntity instanceof UnitCard)) {
+        if (!(foEntity instanceof UnitCategoryLevel3)) {
             setErrMsg("Invalid Entity Passed as Parameter");
             return loResult;
         }
         
         // Typecast the Entity to this object
-        loNewEnt = (UnitCard) foEntity;
+        loNewEnt = (UnitCategoryLevel3) foEntity;
         
         
         // Test if entry is ok
-        if (loNewEnt.getCardName().equals("")){
+        if (loNewEnt.getCategoryName()== null || loNewEnt.getCategoryName().isEmpty()){
             setMessage("Invalid description detected.");
             return loResult;
         }
         
+        if (loNewEnt.getMainCategory()== null || loNewEnt.getMainCategory().isEmpty()){
+            setMessage("Invalid main category detected.");
+            return loResult;
+        }
         
         loNewEnt.setModifiedBy(poCrypt.encrypt(psUserIDxx));
         loNewEnt.setDateModified(poGRider.getServerDate());
@@ -92,7 +96,7 @@ public class Card implements GRecord{
             Connection loConn = null;
             loConn = setConnection();   
             
-            loNewEnt.setCardCode(MiscUtil.getNextCode(loNewEnt.getTable(), "sCardIDxx", false, loConn, psBranchCd));
+            loNewEnt.setCategoryID(MiscUtil.getNextCode(loNewEnt.getTable(), "sCategrCd", false, loConn, ""));
             
             if (!pbWithParent) MiscUtil.close(loConn);
             
@@ -103,12 +107,12 @@ public class Card implements GRecord{
             loOldEnt = openRecord(fsTransNox);
             
             //Generate the Update Statement
-            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sCardIDxx = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
+            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sCategrCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
         }
         
         //No changes have been made
         if (lsSQL.equals("")){
-            setMessage("Record is not updated");
+            setMessage("Record is not updatred");
             return loResult;
         }
         
@@ -132,7 +136,7 @@ public class Card implements GRecord{
 
     @Override
     public boolean deleteRecord(String fsTransNox) {
-        UnitCard loObject = openRecord(fsTransNox);
+        UnitCategoryLevel3 loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -141,7 +145,7 @@ public class Card implements GRecord{
         }
         
         String lsSQL = "DELETE FROM " + loObject.getTable() + 
-                        " WHERE sCardIDxx = " + SQLUtil.toSQL(fsTransNox);
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(fsTransNox);
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -162,7 +166,7 @@ public class Card implements GRecord{
 
     @Override
     public boolean deactivateRecord(String fsTransNox) {
-        UnitCard loObject = openRecord(fsTransNox);
+        UnitCategoryLevel3 loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -179,7 +183,7 @@ public class Card implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.INACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sCardIDxx = " + SQLUtil.toSQL(loObject.getCardCode());
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -199,7 +203,7 @@ public class Card implements GRecord{
 
     @Override
     public boolean activateRecord(String fsTransNox) {
-        UnitCard loObject = openRecord(fsTransNox);
+        UnitCategoryLevel3 loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -216,7 +220,7 @@ public class Card implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.ACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sCardIDxx = " + SQLUtil.toSQL(loObject.getCardCode());
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -266,7 +270,7 @@ public class Card implements GRecord{
 
     @Override
     public String getSQ_Master() {
-        return (MiscUtil.makeSelect(new UnitCard()));
+        return (MiscUtil.makeSelect(new UnitCategoryLevel3()));
     }
     
     //Added methods

@@ -2,7 +2,7 @@
  * @author  Michael Cuison
  * @date    2018-04-19
  */
-package org.rmj.cas.parameter.base;
+package org.rmj.lp.parameter.base;
 
 import com.mysql.jdbc.Connection;
 import java.sql.ResultSet;
@@ -14,30 +14,30 @@ import org.rmj.appdriver.SQLUtil;
 import org.rmj.appdriver.constants.RecordStatus;
 import org.rmj.appdriver.iface.GEntity;
 import org.rmj.appdriver.iface.GRecord;
-import org.rmj.cas.parameter.pojo.UnitTerm;
+import org.rmj.lp.parameter.pojo.UnitCategoryLevel4;
 
-public class Term implements GRecord{   
+public class CategoryLevel4 implements GRecord{   
     @Override
-    public UnitTerm newRecord() {
-        UnitTerm loObject = new UnitTerm();
+    public UnitCategoryLevel4 newRecord() {
+        UnitCategoryLevel4 loObject = new UnitCategoryLevel4();
         
         Connection loConn = null;
         loConn = setConnection();       
         
         //assign the primary values
-        loObject.setTermID(MiscUtil.getNextCode(loObject.getTable(), "sTermCode", false, loConn, psBranchCd));
+        loObject.setCategoryID(MiscUtil.getNextCode(loObject.getTable(), "sCategrCd", false, loConn, ""));
         
         return loObject;
     }
 
     @Override
-    public UnitTerm openRecord(String fstransNox) {
-        UnitTerm loObject = new UnitTerm();
+    public UnitCategoryLevel4 openRecord(String fstransNox) {
+        UnitCategoryLevel4 loObject = new UnitCategoryLevel4();
         
         Connection loConn = null;
         loConn = setConnection();   
         
-        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sTermCode = " + SQLUtil.toSQL(fstransNox));
+        String lsSQL = MiscUtil.addCondition(getSQ_Master(), "sCategrCd = " + SQLUtil.toSQL(fstransNox));
         ResultSet loRS = poGRider.executeQuery(lsSQL);
         
         try {
@@ -60,25 +60,31 @@ public class Term implements GRecord{
     }
 
     @Override
-    public UnitTerm saveRecord(Object foEntity, String fsTransNox) {
+    public UnitCategoryLevel4 saveRecord(Object foEntity, String fsTransNox) {
         String lsSQL = "";
-        UnitTerm loOldEnt = null;
-        UnitTerm loNewEnt = null;
-        UnitTerm loResult = null;
+        UnitCategoryLevel4 loOldEnt = null;
+        UnitCategoryLevel4 loNewEnt = null;
+        UnitCategoryLevel4 loResult = null;
         
         // Check for the value of foEntity
-        if (!(foEntity instanceof UnitTerm)) {
+        if (!(foEntity instanceof UnitCategoryLevel4)) {
             setErrMsg("Invalid Entity Passed as Parameter");
             return loResult;
         }
         
         // Typecast the Entity to this object
-        loNewEnt = (UnitTerm) foEntity;
+        loNewEnt = (UnitCategoryLevel4) foEntity;
         
         
         // Test if entry is ok
-        if (loNewEnt.getTermName() == null || loNewEnt.getTermName().isEmpty()){
+        if (loNewEnt.getCategoryName()== null || loNewEnt.getCategoryName().isEmpty()){
             setMessage("Invalid description detected.");
+            return loResult;
+        }
+        
+        /*This field is optional*/
+        if (loNewEnt.getMainCategory()== null || loNewEnt.getMainCategory().isEmpty()){
+            setMessage("Invalid main category detected.");
             return loResult;
         }
         
@@ -91,7 +97,7 @@ public class Term implements GRecord{
             Connection loConn = null;
             loConn = setConnection();   
             
-            loNewEnt.setTermID(MiscUtil.getNextCode(loNewEnt.getTable(), "sTermCode", false, loConn, psBranchCd));
+            loNewEnt.setCategoryID(MiscUtil.getNextCode(loNewEnt.getTable(), "sCategrCd", false, loConn, ""));
             
             if (!pbWithParent) MiscUtil.close(loConn);
             
@@ -102,12 +108,12 @@ public class Term implements GRecord{
             loOldEnt = openRecord(fsTransNox);
             
             //Generate the Update Statement
-            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sTermCode = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
+            lsSQL = MiscUtil.makeSQL((GEntity) loNewEnt, (GEntity) loOldEnt, "sCategrCd = " + SQLUtil.toSQL(loNewEnt.getValue(1)));
         }
         
         //No changes have been made
         if (lsSQL.equals("")){
-            setMessage("No changes made. Record not updated.");
+            setMessage("Record is not updated");
             return loResult;
         }
         
@@ -131,7 +137,7 @@ public class Term implements GRecord{
 
     @Override
     public boolean deleteRecord(String fsTransNox) {
-        UnitTerm loObject = openRecord(fsTransNox);
+        UnitCategoryLevel4 loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -140,7 +146,7 @@ public class Term implements GRecord{
         }
         
         String lsSQL = "DELETE FROM " + loObject.getTable() + 
-                        " WHERE sTermCode = " + SQLUtil.toSQL(fsTransNox);
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(fsTransNox);
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -161,7 +167,7 @@ public class Term implements GRecord{
 
     @Override
     public boolean deactivateRecord(String fsTransNox) {
-        UnitTerm loObject = openRecord(fsTransNox);
+        UnitCategoryLevel4 loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -178,7 +184,7 @@ public class Term implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.INACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sTermCode = " + SQLUtil.toSQL(loObject.getTermID());
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -198,7 +204,7 @@ public class Term implements GRecord{
 
     @Override
     public boolean activateRecord(String fsTransNox) {
-        UnitTerm loObject = openRecord(fsTransNox);
+        UnitCategoryLevel4 loObject = openRecord(fsTransNox);
         boolean lbResult = false;
         
         if (loObject == null){
@@ -215,7 +221,7 @@ public class Term implements GRecord{
                         " SET  cRecdStat = " + SQLUtil.toSQL(RecordStatus.ACTIVE) + 
                             ", sModified = " + SQLUtil.toSQL(poCrypt.encrypt(psUserIDxx)) +
                             ", dModified = " + SQLUtil.toSQL(poGRider.getServerDate()) + 
-                        " WHERE sTermCode = " + SQLUtil.toSQL(loObject.getTermID());
+                        " WHERE sCategrCd = " + SQLUtil.toSQL(loObject.getCategoryID());
         
         if (!pbWithParent) poGRider.beginTrans();
         
@@ -265,7 +271,7 @@ public class Term implements GRecord{
 
     @Override
     public String getSQ_Master() {
-        return (MiscUtil.makeSelect(new UnitTerm()));
+        return (MiscUtil.makeSelect(new UnitCategoryLevel4()));
     }
     
     //Added methods
