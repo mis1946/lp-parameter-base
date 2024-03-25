@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package org.rmj.lp.parameter.base;
 
 import java.sql.ResultSet;
@@ -913,7 +909,7 @@ public class ARDelivery {
                     "ID.»Brief Description»Description»Date Partner",
                     "sRiderIDx»sBriefDsc»sDescript»dPartnerx",
                     "a.sRiderIDx»a.sBriefDsc»a.sDescript»a.dPartnerx",
-                    fbByCode ? 0 : 1);
+                    fbByCode ? 0 : 0);
             if (loJSON != null) {
                 return OpenTransaction((String) loJSON.get("sRiderIDx"));
             } else {
@@ -952,7 +948,6 @@ public class ARDelivery {
 
         p_sMessage = "";
         String lsSQL = getSQ_Master();
-        String lsCondition = "";
         ResultSet loRS;
         RowSetFactory factory = RowSetProvider.newFactory();
 
